@@ -1,5 +1,7 @@
 package com.muniz.workshopmongo.resources;
 
+
+import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -7,14 +9,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.muniz.workshopmongo.domain.User;
 import com.muniz.workshopmongo.dto.UserDTO;
 import com.muniz.workshopmongo.services.UserService;
-
-// REMOVA: import ch.qos.logback.core.joran.spi.HttpUtil.RequestMethod; // REMOVER ESTA LINHA!
 
 @RestController
 @RequestMapping("/users")
@@ -30,10 +33,18 @@ public class UserResource {
 		return ResponseEntity.ok().body(listDto);		
 	}
 
-    // CORRIGIDO: Removido o 'method=RequestMethod.GET' e a importação incorreta
+    
 	@GetMapping(value="/{id}")
 	public ResponseEntity<UserDTO> findById(@PathVariable String id){
 		User obj = service.findById(id); 
 		return ResponseEntity.ok().body(new UserDTO(obj));		
 	}	
+	
+	@PostMapping
+	public ResponseEntity<Void> insert(@RequestBody UserDTO objDto){
+		User obj = service.fromDTO(objDto);
+		obj = service.insert(obj);
+		URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(obj.getId()).toUri();
+		return ResponseEntity.created(uri).build();
+	}
 }
